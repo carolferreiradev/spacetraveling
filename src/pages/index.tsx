@@ -34,26 +34,28 @@ interface HomeProps {
 export default function Home({ postsPagination, preview }: HomeProps) {
   const [postsList, setPostsList] = useState<PostPagination>(postsPagination);
   function getNextPage() {
-    fetch(postsPagination.next_page)
-      .then(response => response.json())
-      .then(data => {
-        const posts = data.results.map(post => {
-          return {
-            uid: post.uid,
-            first_publication_date: post.first_publication_date,
-            data: {
-              title: post.data.title,
-              subtitle: post.data.subtitle,
-              author: post.data.author,
-            },
+    if (postsList.next_page) {
+      fetch(postsList.next_page)
+        .then(response => response.json())
+        .then(data => {
+          const posts = data.results.map(post => {
+            return {
+              uid: post.uid,
+              first_publication_date: post.first_publication_date,
+              data: {
+                title: post.data.title,
+                subtitle: post.data.subtitle,
+                author: post.data.author,
+              },
+            };
+          });
+          const postsPaginationList = {
+            next_page: data.next_page || null,
+            results: [...postsList.results, ...posts],
           };
+          setPostsList(postsPaginationList);
         });
-        const postsPaginationList = {
-          next_page: data.next_page,
-          results: [...postsList.results, ...posts],
-        };
-        setPostsList(postsPaginationList);
-      });
+    }
   }
   return (
     <div className={commonStyles.container}>
@@ -66,7 +68,7 @@ export default function Home({ postsPagination, preview }: HomeProps) {
       )}
       {postsList?.results.map(post => {
         return (
-          <section key={post.data.subtitle} className={styles.post}>
+          <section key={post.uid} className={styles.post}>
             <div className={styles.header}>
               <Link href={`/post/${post.uid}`}>
                 <h1>{post.data.title}</h1>
